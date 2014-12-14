@@ -4,7 +4,7 @@
 // @description Ignorer les box d'un utilisateur, supprimer de sa page les boxs déjà votées, afficher les images en commentaires
 // @author      Benji - http://choualbox.com/blog/benji
 // @include     http://choualbox.com/*
-// @version     2.5
+// @version     2.6
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_log
@@ -37,12 +37,14 @@ function boucle() {
 		}
 		if ((ignoreList.indexOf(pseudoId) == -1)) {
 			if (!((box.getElementsByClassName('voted').length != 0) && (GM_config.get('delAutoVote')))) {
-				lienIgnore = document.createElement('a');
-				lienIgnore.innerHTML = 'Ignorer ses boxs';
-				lienIgnore.className = 'ignoreNickname-' + pseudoId;
-				lienIgnore.style.cursor = "pointer";
-				lienIgnore.onclick = function () { ajoutIgnoreList(this) };
-				droiteBox.appendChild(lienIgnore);
+				if (GM_config.get('affLienIgnore')) {
+					lienIgnore = document.createElement('a');
+					lienIgnore.innerHTML = 'Ignorer ses boxs';
+					lienIgnore.className = 'ignoreNickname-' + pseudoId;
+					lienIgnore.style.cursor = "pointer";
+					lienIgnore.onclick = function () { ajoutIgnoreList(this) };
+					droiteBox.appendChild(lienIgnore);
+				}
 				if (GM_config.get('series') && regSeries.test(titre)) {
 					titreDec = regSeries.exec(titre);
 					lienSerie = document.createElement('a');
@@ -102,13 +104,13 @@ ConfigConf =
 	'delAutoVote':
 	{
 		'section': ['Général'],
-		'label': 'Supprimer automatiquement de la page les box déjà voté',
+		'label': 'Supprimer automatiquement de la page les box déjà votées.',
 		'type': 'checkbox',
 		'default': false
 	},
 	'affichageImagesCommentaires':
 	{
-		'label': 'Affichage automatique des images en commentaires',
+		'label': 'Affichage automatique des images en commentaire.',
 		'type': 'checkbox',
 		'default': false
 	},
@@ -118,6 +120,12 @@ ConfigConf =
 		'type': 'checkbox',
 		'default': false
 	},
+	'affLienIgnore':
+	{
+		'label': 'Afficher lien pour ajouter aux personnes ignorées sur chaque box',
+		'type': 'checkbox',
+		'default': false
+	}
 	'ignoreList': {
 		'section': ['Utilisateurs ignorés (séparés par des virgules)'],
 		'type': 'textarea',
@@ -140,4 +148,4 @@ configDOMi.style.cursor = "pointer";
 $('.navbar-right').append(configDOM);
 ignoreList = GM_config.get('ignoreList').split(", ");
 if (document.getElementsByClassName('box_boucle').length > 0) { boucle(); setInterval(boucle, 3000); }
-if (document.getElementsByClassName('commentaires').length > 0) { afficherImagesCommentaires(); }
+if (document.getElementsByClassName('commentaires').length > 0 && GM_config.get('affichageImagesCommentaires')) { afficherImagesCommentaires(); }
