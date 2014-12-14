@@ -124,7 +124,7 @@ ConfigConf =
 		'default': ''
 	}
 };
-GM_config.init('Chouaddons v2.4 - Configuration', ConfigConf);
+GM_config.init('Chouaddons v2.5 - Configuration', ConfigConf);
 configDOM = document.createElement('li');
 configDOM.className = 'with-icon tooltip-bottom';
 configDOM.attributes.style = "position:relative;";
