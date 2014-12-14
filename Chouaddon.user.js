@@ -125,14 +125,14 @@ ConfigConf =
 		'label': 'Afficher lien pour ajouter aux personnes ignorées sur chaque box',
 		'type': 'checkbox',
 		'default': false
-	}
+	},
 	'ignoreList': {
 		'section': ['Utilisateurs ignorés (séparés par des virgules)'],
 		'type': 'textarea',
 		'default': ''
 	}
 };
-GM_config.init('Chouaddons v2.5 - Configuration', ConfigConf);
+GM_config.init('Chouaddons v2.6 - Configuration', ConfigConf);
 configDOM = document.createElement('li');
 configDOM.className = 'with-icon tooltip-bottom';
 configDOM.attributes.style = "position:relative;";
