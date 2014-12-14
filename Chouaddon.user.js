@@ -4,7 +4,7 @@
 // @description Ignorer les box d'un utilisateur, supprimer de sa page les boxs déjà votées, afficher les images en commentaires
 // @author      Benji - http://choualbox.com/blog/benji
 // @include     http://choualbox.com/*
-// @version     2.6
+// @version     2.7
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_log
