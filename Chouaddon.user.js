@@ -132,7 +132,7 @@ ConfigConf =
 		'default': ''
 	}
 };
-GM_config.init('Chouaddons v2.6 - Configuration', ConfigConf);
+GM_config.init('Chouaddons v2.7 - Configuration', ConfigConf);
 configDOM = document.createElement('li');
 configDOM.className = 'with-icon tooltip-bottom';
 configDOM.attributes.style = "position:relative;";
