@@ -4,7 +4,7 @@
 // @description Ignorer les box d'un utilisateur, supprimer de sa page les boxs déjà votées, afficher les images en commentaires
 // @author      Benji - http://choualbox.com/blog/benji
 // @include     http://choualbox.com/*
-// @version     3.0.1
+// @version     3.0.2
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_log
@@ -148,7 +148,7 @@ gCGW.classList.add('dropdown-menu');
 gCGW.style.width = "600px";
 gCGW.style.padding = "5px";
 titregCGW = document.createElement('h1');
-titregCGW.innerHTML = "Chouaddons v3.0 - Configuration";
+titregCGW.innerHTML = "Chouaddons v3.0.2 - Configuration";
 gCGW.appendChild(titregCGW);
 
 ajouterOptionMenu('Supprimer automatiquement de la page les box déjà votées.', 'delAutoVote', "checkbox", gCGW);
@@ -162,7 +162,7 @@ elementMenu.attributes.style = "position:relative;";
 
 lienElementMenu = document.createElement('a');
 lienElementMenu.onclick = function() {
-	gCGW.style.display = (gCGW.style.display != "none") ? "none" : "block";
+	gCGW.style.display = (gCGW.style.display == "none" || gCGW.style.display == "") ? "block" : "none";
 }
 lienElementMenu.onblur = function() {
 	gCGW.style.display = "none";
