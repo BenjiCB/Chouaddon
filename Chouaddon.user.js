@@ -4,12 +4,11 @@
 // @description Ignorer les box d'un utilisateur, supprimer de sa page les boxs déjà votées, afficher les images en commentaires
 // @author      Benji - http://choualbox.com/blog/benji
 // @include     http://choualbox.com/*
-// @version     2.7
+// @version     3.0
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_log
 // @require     http://code.jquery.com/jquery-2.0.3.min.js
-// @require	   	https://raw.githubusercontent.com/sizzlemctwizzle/GM_config/master/gm_config.js
 // @updateURL 	https://github.com/BenjiCB/Chouaddon/raw/master/Chouaddon.user.js
 // ==/UserScript==
 boxWorked = new Array();
@@ -36,8 +35,8 @@ function boucle() {
 			}
 		}
 		if ((ignoreList.indexOf(pseudoId) == -1)) {
-			if (!((box.getElementsByClassName('voted').length != 0) && (GM_config.get('delAutoVote')))) {
-				if (GM_config.get('affLienIgnore')) {
+			if (!((box.getElementsByClassName('voted').length != 0) && (GM_getValue('delAutoVote', false)))) {
+				if (GM_getValue('affLienIgnore', false)) {
 					lienIgnore = document.createElement('a');
 					lienIgnore.innerHTML = 'Ignorer ses boxs';
 					lienIgnore.className = 'ignoreNickname-' + pseudoId;
@@ -45,7 +44,7 @@ function boucle() {
 					lienIgnore.onclick = function () { ajoutIgnoreList(this) };
 					droiteBox.appendChild(lienIgnore);
 				}
-				if (GM_config.get('series') && regSeries.test(titre)) {
+				if (GM_getValue('series', false) && regSeries.test(titre)) {
 					titreDec = regSeries.exec(titre);
 					lienSerie = document.createElement('a');
 					lienSerie.innerHTML = '<br />Série ' + titreDec[1];
@@ -80,72 +79,93 @@ function ajoutIgnoreList(obj) {
     id = obj.className;
     regPseudo = /ignoreNickname-(.*)/
     if ((regPseudo.test(id)) && (pseudo = regPseudo.exec(id)[1]) && (!ignoreList.hasOwnProperty(pseudo)) && (ignoreList.indexOf(pseudo) == -1)) {
-        ignoreList = GM_config.get('ignoreList').split(", ");
-		if ("" == GM_config.get('ignoreList')) GM_config.set('ignoreList', pseudo);
-        else
-		{
-			ignoreList.push(pseudo);
-			GM_config.set('ignoreList', ignoreList.join(", "));
-			GM_config.save();
-		}
+			ignoreList = GM_getValue('ignoreList', "").split(", ");
+			if ("" == GM_getValue('ignoreList', "")) GM_setValue('ignoreList', pseudo);
+			else {
+				ignoreList.push(pseudo);
+				GM_setValue('ignoreList', ignoreList.join(", "));
+				document.getElementById('ignoreList').value = GM_getValue('ignoreList', "");
+			}
     }
 	obj.innerHTML = "Ok.";
 }
-function ouvrirConf() {
-    GM_config.open();
-    GM_config.write();
-}
-function fermerConf() {
-    GM_config.save();
-    GM_config.close();
-}
-ConfigConf =
-{
-	'delAutoVote':
-	{
-		'section': ['Général'],
-		'label': 'Supprimer automatiquement de la page les box déjà votées.',
-		'type': 'checkbox',
-		'default': false
-	},
-	'affichageImagesCommentaires':
-	{
-		'label': 'Affichage automatique des images en commentaire.',
-		'type': 'checkbox',
-		'default': false
-	},
-  'series':
-	{
-		'label': 'Lien de recherche automatique sur les séries',
-		'type': 'checkbox',
-		'default': false
-	},
-	'affLienIgnore':
-	{
-		'label': 'Afficher lien pour ajouter aux personnes ignorées sur chaque box',
-		'type': 'checkbox',
-		'default': false
-	},
-	'ignoreList': {
-		'section': ['Utilisateurs ignorés (séparés par des virgules)'],
-		'type': 'textarea',
-		'default': ''
+
+function ajouterOptionMenu(label, nomInterne, type, parent) {
+	option = document.createElement("div");
+	option.style.marginBottom = "5px";
+	if (type == "textarea") optionInput = document.createElement(type);
+	else {
+		optionInput = document.createElement("input");
+		optionInput.type = type;
 	}
-};
-GM_config.init('Chouaddons v2.7 - Configuration', ConfigConf);
-configDOM = document.createElement('li');
-configDOM.className = 'with-icon tooltip-bottom';
-configDOM.attributes.style = "position:relative;";
-configDOMa = document.createElement('a');
-configDOMa.onclick = function() {
-    ouvrirConf();
+	if (type == "checkbox"){
+		optionInput.onclick = function () { optionChange(this) };
+		optionInput.checked = GM_getValue(nomInterne, false);
+	}
+	else {
+		optionInput.onblur = function () { optionChange(this) };
+		optionInput.value = GM_getValue(nomInterne, "");
+	}
+	optionInput.id = nomInterne;
+	optionInput.style.height = "auto";
+	optionInput.style.width = "auto";
+	optionInput.style.marginRight = "5px";
+	
+	optionLabel = document.createElement("label");
+	optionLabel.htmlFor = nomInterne;
+	optionLabel.innerHTML = label;
+	optionLabel.style.display = "inline";
+	if (type == "textarea") {
+		option.appendChild(optionLabel);
+		option.appendChild(document.createElement('br'));
+		optionInput.style.width = "100%";
+		option.appendChild(optionInput);
+	}
+	else {
+		option.appendChild(optionInput);
+		option.appendChild(optionLabel);
+	}
+	parent.appendChild(option);
 }
-configDOMi = document.createElement('i');
-configDOMi.className = 'glyphicon glyphicon-filter';
-configDOMa.appendChild(configDOMi);
-configDOM.appendChild(configDOMa);
-configDOMi.style.cursor = "pointer";
-$('.navbar-right').append(configDOM);
-ignoreList = GM_config.get('ignoreList').split(", ");
+
+function optionChange(optionInput) {
+		if (optionInput.type == "checkbox") val = optionInput.checked;
+	else val = optionInput.value;
+	GM_setValue(optionInput.id, val);
+}
+gCGW = document.createElement('div');
+gCGW.classList.add('dropdown-menu');
+gCGW.style.width = "600px";
+gCGW.style.padding = "5px";
+titregCGW = document.createElement('h1');
+titregCGW.innerHTML = "Chouaddons v3.0 - Configuration";
+gCGW.appendChild(titregCGW);
+
+ajouterOptionMenu('Supprimer automatiquement de la page les box déjà votées.', 'delAutoVote', "checkbox", gCGW);
+ajouterOptionMenu('Images en commentaire en taille réel', 'affichageImagesCommentaires', "checkbox", gCGW);
+ajouterOptionMenu('Lien en dessous de chaque boxs pour ignorer les futures box de l\'auteur', 'affLienIgnore', "checkbox", gCGW);
+ajouterOptionMenu('Utilisateurs ignorés : (Séparés par des virgules)', 'ignoreList', "textarea", gCGW);
+
+elementMenu = document.createElement('li');
+elementMenu.className = 'with-icon tooltip-bottom';
+elementMenu.attributes.style = "position:relative;";
+
+lienElementMenu = document.createElement('a');
+lienElementMenu.onclick = function() {
+	gCGW.style.display = (gCGW.style.display != "none") ? "none" : "block";
+}
+lienElementMenu.onblur = function() {
+	gCGW.style.display = "none";
+}
+filtreElementMenu = document.createElement('i');
+filtreElementMenu.className = 'glyphicon glyphicon-filter';
+filtreElementMenu.style.cursor = "pointer";
+
+lienElementMenu.appendChild(filtreElementMenu);
+elementMenu.appendChild(lienElementMenu);
+elementMenu.appendChild(gCGW);
+document.getElementsByClassName('navbar-right')[0].appendChild(elementMenu);
+
+ignoreList = GM_getValue('ignoreList', "").split(", ");
 if (document.getElementsByClassName('box_boucle').length > 0) { boucle(); setInterval(boucle, 3000); }
-if (document.getElementsByClassName('commentaires').length > 0 && GM_config.get('affichageImagesCommentaires')) { afficherImagesCommentaires(); }
+if (document.getElementsByClassName('commentaires').length > 0 && GM_getValue('affichageImagesCommentaires', false)) { afficherImagesCommentaires(); }
