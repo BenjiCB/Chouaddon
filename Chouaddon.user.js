@@ -4,7 +4,7 @@
 // @description Ignorer les box d'un utilisateur, supprimer de sa page les boxs déjà votées, afficher les images en commentaires
 // @author      Benji - http://choualbox.com/blog/benji
 // @include     http://choualbox.com/*
-// @version     3.0
+// @version     3.0.1
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_log
@@ -14,7 +14,17 @@
 boxWorked = new Array();
 regPseudo = /blog\/(.*)/;
 regSeries = /([^\t]+?)\.*#[0-9]+.*$/;
-
+if (!this.GM_getValue || (this.GM_getValue.toString && this.GM_getValue.toString().indexOf("not supported")>-1)) {
+  this.GM_getValue=function (key,def) {
+      return localStorage[key] || def;
+  };
+  this.GM_setValue=function (key,value) {
+      return localStorage[key]=value;
+  };
+  this.GM_deleteValue=function (key) {
+      return delete localStorage[key];
+  };
+}
 function boucle() {
 	boxs = document.getElementsByClassName('box_boucle');
 	for (i in boxs) {
