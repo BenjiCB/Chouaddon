@@ -4,7 +4,7 @@
 // @description Ignorer les box d'un utilisateur, supprimer de sa page les boxs déjà votées, afficher les images en commentaires
 // @author      Benji - http://choualbox.com/blog/benji
 // @include     http://choualbox.com/*
-// @version     3.0.3
+// @version     3.0.4
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_log
@@ -15,20 +15,30 @@ boxWorked = new Array();
 regPseudo = /blog\/(.*)/;
 regSeries = /([^\t]+?)\.*#[0-9]+.*$/;
 
-
-this.GM_getValue=function (key,def) {
-	return localStorage[key] || def;
-};
-this.GM_getBoolValue = function (key, def) {
-	return (this.GM_getValue(key, def) == "true");
+try {
+	if (GM_getValue.toString().indexOf("not supported") != -1) {
+		this.GM_getValue=function (key,def) {
+			return localStorage[key] || def;
+		};
+		
+		this.GM_setValue=function (key,value) {
+			return localStorage[key]=value;
+		};
+		this.GM_deleteValue=function (key) {
+			return delete localStorage[key];
+		};
+	}
 }
-this.GM_setValue=function (key,value) {
-	return localStorage[key]=value;
-};
-this.GM_deleteValue=function (key) {
-	return delete localStorage[key];
-};
-
+catch (e) {
+	console.log(e);
+}
+this.GM_getBoolValue = function (key, def) {
+	return (this.GM_getValue(key, def) === true || this.GM_getValue(key, def) == "true");
+}
+function changerCouleurBandeau() {
+	document.getElementsByClassName("navbar-principal")[0].style.backgroundColor = GM_getValue('colorBandeau');
+}
+if (GM_getBoolValue('choixChangerCouleur', true)) { changerCouleurBandeau(); }
 function boucle() {
 	boxs = document.getElementsByClassName('box_boucle');
 	for (i in boxs) {
@@ -103,9 +113,7 @@ function ajoutIgnoreList(obj) {
     }
 	obj.innerHTML = "Ignoré";
 }
-function changerCouleurBandeau() {
-	document.getElementsByClassName("navbar-principal")[0].style.backgroundColor = GM_getValue('colorBandeau');
-}
+
 function mettreWebMPause() {
 	document.getElementsByClassName('videoplayer')[0].pause();
 	console.log(document.getElementsByClassName('videoplayer')[0]);
@@ -196,5 +204,4 @@ document.getElementsByClassName('navbar-right')[0].appendChild(elementMenu);
 ignoreList = GM_getValue('ignoreList', "").split(", ");
 if (document.getElementsByClassName('box_boucle').length > 0) { boucle(); setInterval(boucle, 3000); }
 if (document.getElementsByClassName('commentaires').length > 0 && GM_getBoolValue('affichageImagesCommentaires', false)) { afficherImagesCommentaires(); }
-if (GM_getBoolValue('choixChangerCouleur', true)) { changerCouleurBandeau(); }
 if (document.getElementsByClassName('videoplayer').length > 0 && !GM_getBoolValue('pauseAutoWebm', true)) { console.log("ok"); mettreWebMPause(); }
