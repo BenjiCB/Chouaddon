@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name        Chouaddon
 // @namespace   choualbox.com
-// @description Ignorer les box d'un utilisateur, supprimer de sa page les boxs déjà votées, afficher les images en commentaires
+// @description Addon qui améliore la navigation sur Choualbox
 // @author      Benji - http://choualbox.com/blog/benji
+// @editor			CatShadow - http://choualbox.com/blog/catshadow
 // @include     http://choualbox.com/*
-// @version     3.0.4
+// @version     3.0.6
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_log
@@ -62,7 +63,7 @@ function boucle() {
 			if (!((box.getElementsByClassName('voted').length != 0) && (GM_getBoolValue('delAutoVote', false)))) {
 				if (GM_getBoolValue('affLienIgnore', false)) {
 					lienIgnore = document.createElement('a');
-					lienIgnore.innerHTML = 'Ignorer ses boxs';
+					lienIgnore.innerHTML = 'Ignorer les boxs de ' + pseudoId;
 					lienIgnore.className = 'ignoreNickname-' + pseudoId;
 					lienIgnore.style.cursor = "pointer";
 					lienIgnore.onclick = function () { ajoutIgnoreList(this) };
@@ -116,7 +117,9 @@ function ajoutIgnoreList(obj) {
 
 function mettreWebMPause() {
 	document.getElementsByClassName('videoplayer')[0].pause();
-	console.log(document.getElementsByClassName('videoplayer')[0]);
+}
+function adaptHauteurWebM() {
+	document.getElementsByClassName('videoplayer')[0].style.width = "auto";
 }
 function ajouterOptionMenu(label, nomInterne, type, parent, def) {
 	option = document.createElement("div");
@@ -143,6 +146,7 @@ function ajouterOptionMenu(label, nomInterne, type, parent, def) {
 	optionLabel.htmlFor = nomInterne;
 	optionLabel.innerHTML = label;
 	optionLabel.style.display = "inline";
+	optionLabel.style.fontWeight = "normal";
 	if (type == "textarea") {
 		option.appendChild(optionLabel);
 		option.appendChild(document.createElement('br'));
@@ -153,8 +157,8 @@ function ajouterOptionMenu(label, nomInterne, type, parent, def) {
 		option.appendChild(optionInput);
 		option.appendChild(optionLabel);
 		if (type == "color") {
-			optionInput.style.width = "30px";
-			optionInput.style.height = "15px";
+			optionInput.style.width = "38px";
+			optionInput.style.height = "26px";
 		}
 	}
 	parent.appendChild(option);
@@ -170,16 +174,18 @@ gCGW.classList.add('dropdown-menu');
 gCGW.style.width = "600px";
 gCGW.style.padding = "5px";
 titregCGW = document.createElement('h1');
-titregCGW.innerHTML = "Chouaddons v3.0.3 - Configuration";
+titregCGW.innerHTML = "Chouaddon v3.0.6 - Configuration";
 gCGW.appendChild(titregCGW);
 
-ajouterOptionMenu('Supprimer automatiquement de la page les box déjà votées.', 'delAutoVote', "checkbox", gCGW, false);
-ajouterOptionMenu('Images en commentaire en taille réel', 'affichageImagesCommentaires', "checkbox", gCGW, true);
-ajouterOptionMenu('Lien en dessous de chaque boxs pour ignorer les futures box de l\'auteur', 'affLienIgnore', "checkbox", gCGW, false);
-ajouterOptionMenu('Utilisateurs ignorés : (Séparés par des virgules)', 'ignoreList', "textarea", gCGW, "");
+ajouterOptionMenu('Masquer les box déjà votées', 'delAutoVote', "checkbox", gCGW, false);
+ajouterOptionMenu('Images commentaire en taille réelle', 'affichageImagesCommentaires', "checkbox", gCGW, true);
+ajouterOptionMenu('Lien auto de recherche lors d\'une série', 'series', "checkbox", gCGW, true);
+ajouterOptionMenu('Lien sur chaque box pour ignorer les box de l\'auteur', 'affLienIgnore', "checkbox", gCGW, false);
+ajouterOptionMenu('Utilisateurs ignorés : (Séparés par des virgules, pas de majuscules)', 'ignoreList', "textarea", gCGW, "");
 ajouterOptionMenu('Changer la couleur du bandeau', 'choixChangerCouleur', "checkbox", gCGW, false);
 ajouterOptionMenu('Couleur du bandeau', 'colorBandeau', "color", gCGW, "#446cb3");
-ajouterOptionMenu('Webm joué automatiquement', 'pauseAutoWebm', "checkbox", gCGW, true);
+ajouterOptionMenu('Ne pas jouer automatiquement les Webm', 'pauseAutoWebm', "checkbox", gCGW, false);
+ajouterOptionMenu('Passer les webm en taille réel', 'hautWebm', "checkbox", gCGW, true);
 elementMenu = document.createElement('li');
 elementMenu.className = 'with-icon tooltip-bottom';
 elementMenu.attributes.style = "position:relative;";
@@ -189,19 +195,31 @@ filtreElementMenu.className = 'glyphicon glyphicon-plus';
 filtreElementMenu.style.cursor = "pointer";
 
 lienElementMenu = document.createElement('a');
+lienElementMenu.style.paddingTop = "15px";
+lienElementMenu.style.paddingLeft = "0px";
+lienElementMenu.style.paddingRight = "0px";
+lienElementMenu.style.paddingBottom = "0px";
 lienElementMenu.onclick = function() {
 	gCGW.style.display = (gCGW.style.display == "none" || gCGW.style.display == "") ? "block" : "none";
 	filtreElementMenu.className = (gCGW.style.display == "none" || gCGW.style.display == "") ? 'glyphicon glyphicon-plus' : 'glyphicon glyphicon-minus';
 }
 
 
-
 lienElementMenu.appendChild(filtreElementMenu);
 elementMenu.appendChild(lienElementMenu);
 elementMenu.appendChild(gCGW);
 document.getElementsByClassName('navbar-right')[0].appendChild(elementMenu);
+document.getElementById("ignoreList").style.resize = "vertical";
+document.getElementById("ignoreList").style.maxHeight = "400px";
+var colorBandStyl = document.getElementById("colorBandeau").style;
+colorBandStyl.backgroundColor = "#fff";
+colorBandStyl.marginTop = "0px";
+colorBandStyl.paddingTop = "0px";
+colorBandStyl.paddingBottom = "0px";
+
 
 ignoreList = GM_getValue('ignoreList', "").split(", ");
 if (document.getElementsByClassName('box_boucle').length > 0) { boucle(); setInterval(boucle, 3000); }
 if (document.getElementsByClassName('commentaires').length > 0 && GM_getBoolValue('affichageImagesCommentaires', false)) { afficherImagesCommentaires(); }
-if (document.getElementsByClassName('videoplayer').length > 0 && !GM_getBoolValue('pauseAutoWebm', true)) { console.log("ok"); mettreWebMPause(); }
+if (document.getElementsByClassName('videoplayer').length > 0 && GM_getBoolValue('pauseAutoWebm', false)) { console.log(GM_getBoolValue('pauseAutoWebm', false)); mettreWebMPause(); }
+if (document.getElementsByClassName('videoplayer').length > 0 && GM_getBoolValue('hautWebm', false)) { adaptHauteurWebM(); }
