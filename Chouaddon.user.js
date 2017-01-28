@@ -2,10 +2,10 @@
 // @name        Chouaddon
 // @namespace   choualbox.com
 // @description Addon qui améliore la navigation sur Choualbox
-// @author      Benji - http://choualbox.com/blog/benji
-// @editor			CatShadow - http://choualbox.com/blog/catshadow
+// @author      Appineos - http://choualbox.com/blog/appineos (Benji)
+// @editor	CatShadow - http://choualbox.com/blog/catshadow
 // @include     http://choualbox.com/*
-// @version     3.0.6
+// @version     4.0
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_log
@@ -36,10 +36,7 @@ catch (e) {
 this.GM_getBoolValue = function (key, def) {
 	return (this.GM_getValue(key, def) === true || this.GM_getValue(key, def) == "true");
 }
-function changerCouleurBandeau() {
-	document.getElementsByClassName("navbar-principal")[0].style.backgroundColor = GM_getValue('colorBandeau');
-}
-if (GM_getBoolValue('choixChangerCouleur', true)) { changerCouleurBandeau(); }
+
 function boucle() {
 	boxs = document.getElementsByClassName('box_boucle');
 	for (i in boxs) {
@@ -47,34 +44,34 @@ function boucle() {
 		if (boxs[i].classList.contains('dejaTraitee')) continue;
 		box = boxs[i];
 		droiteBox = box.getElementsByClassName('droite')[0];
+		mediaBox = droiteBox.getElementsByClassName('medias')[0];
 		idUnique = box.getElementsByClassName('nbcoms')[0].pathname;
 		box.classList.add('dejaTraitee');
 		titre = box.getElementsByTagName("h3")[0].getElementsByTagName("a")[0].innerHTML;
-		cherchePseudo = box.getElementsByClassName('infos')[0].getElementsByTagName('a');
-		pseudoId = "Bug";
-		for (testIsPseudo in cherchePseudo) {
-			if (isNaN(testIsPseudo)) break;
-			if (cherchePseudo[testIsPseudo].classList.length == 0 && regPseudo.test(cherchePseudo[testIsPseudo].href)) {
-				pseudoId = regPseudo.exec(cherchePseudo[testIsPseudo].href)[1];
-				break;
-			}
-		}
-		if ((ignoreList.indexOf(pseudoId) == -1)) {
+		console.log(box.getElementsByClassName('infos'));
+		if (box.classList.contains('large'))
+		 pseudoId = box.getElementsByClassName('medias')[0].getElementsByTagName('a')[0].innerText;
+		else
+		 pseudoId = box.getElementsByClassName('infos')[0].getElementsByTagName('a')[1].innerText;
+
+		if ((ignoreList.indexOf(pseudoId) == -1)) { //Si la personne n'est pas ignorée
 			if (!((box.getElementsByClassName('voted').length != 0) && (GM_getBoolValue('delAutoVote', false)))) {
 				if (GM_getBoolValue('affLienIgnore', false)) {
 					lienIgnore = document.createElement('a');
-					lienIgnore.innerHTML = 'Ignorer les boxs de ' + pseudoId;
+					lienIgnore.innerHTML = '<span class="glyphicon glyphicon-eye-close"></span> Ignorer ' + pseudoId;
 					lienIgnore.className = 'ignoreNickname-' + pseudoId;
 					lienIgnore.style.cursor = "pointer";
 					lienIgnore.onclick = function () { ajoutIgnoreList(this) };
-					droiteBox.appendChild(lienIgnore);
+					lienIgnore.style.color = 'rgb(102, 102, 102)';
+					
+					mediaBox.appendChild(lienIgnore);
 				}
 				if (GM_getBoolValue('series', false) && regSeries.test(titre)) {
 					titreDec = regSeries.exec(titre);
 					lienSerie = document.createElement('a');
-					lienSerie.innerHTML = '<br />Série ' + titreDec[1];
+					lienSerie.innerHTML = '<span class="glyphicon glyphicon-search"></span> Série ' + titreDec[1];
 					lienSerie.href = 'http://choualbox.com/recherche?q=' + encodeURIComponent(titreDec[1]);
-					droiteBox.appendChild(lienSerie);
+					mediaBox.appendChild(lienSerie);
 				}
 			}
 			else {
@@ -86,7 +83,7 @@ function boucle() {
 		else {
 			box.style.backgroundColor = '#EEEEEE';
 			box.style.minHeight = 0;
-			box.innerHTML = '<a href="' + idUnique + '">Box ignorée (' + pseudoId + ') - ' + titre + '</a>';
+			box.innerHTML = '<a style="color: rgb(102, 102, 102)" href="' + idUnique + '">Box ignorée (' + pseudoId + ') - ' + titre + '</a>';
 		}
 	}
 }
@@ -95,6 +92,8 @@ function afficherImagesCommentaires() {
 	for (i in medias) {
 		if (isNaN(i)) continue;
 		lien = medias[i].getElementsByTagName('a')[0];
+		if (lien.getElementsByClassName('gif-overlay').length > 0)
+  		lien.removeChild(lien.getElementsByClassName('gif-overlay')[0]);
 		image = lien.getElementsByTagName('img')[0];
 		image.src = lien.href;
 		image.style.maxWidth = '100%';
@@ -114,12 +113,11 @@ function ajoutIgnoreList(obj) {
     }
 	obj.innerHTML = "Ignoré";
 }
-
-function mettreWebMPause() {
-	document.getElementsByClassName('videoplayer')[0].pause();
-}
-function adaptHauteurWebM() {
-	document.getElementsByClassName('videoplayer')[0].style.width = "auto";
+function rmSidebar(sidebar) {
+	if (sidebar != null) {
+	 sidebar.parentNode.removeChild(sidebar);
+	 document.getElementById('principal').getElementsByClassName('col-xs-8')[0].className = 'col-xs-12';
+	}
 }
 function ajouterOptionMenu(label, nomInterne, type, parent, def) {
 	option = document.createElement("div");
@@ -174,18 +172,17 @@ gCGW.classList.add('dropdown-menu');
 gCGW.style.width = "600px";
 gCGW.style.padding = "5px";
 titregCGW = document.createElement('h1');
-titregCGW.innerHTML = "Chouaddon v3.0.6 - Configuration";
+titregCGW.innerHTML = "Chouaddon v4.0 - Configuration";
 gCGW.appendChild(titregCGW);
 
 ajouterOptionMenu('Masquer les box déjà votées', 'delAutoVote', "checkbox", gCGW, false);
 ajouterOptionMenu('Images commentaire en taille réelle', 'affichageImagesCommentaires', "checkbox", gCGW, true);
 ajouterOptionMenu('Lien auto de recherche lors d\'une série', 'series', "checkbox", gCGW, true);
 ajouterOptionMenu('Lien sur chaque box pour ignorer les box de l\'auteur', 'affLienIgnore', "checkbox", gCGW, false);
+ajouterOptionMenu('Enlever la colonne de droite sur la liste des boxs', 'rmSidebarBoxList', "checkbox", gCGW, false);
+ajouterOptionMenu('Enlever la colonne de droite sur les boxs', 'rmSidebarBox', "checkbox", gCGW, false);
 ajouterOptionMenu('Utilisateurs ignorés : (Séparés par des virgules, pas de majuscules)', 'ignoreList', "textarea", gCGW, "");
-ajouterOptionMenu('Changer la couleur du bandeau', 'choixChangerCouleur', "checkbox", gCGW, false);
-ajouterOptionMenu('Couleur du bandeau', 'colorBandeau', "color", gCGW, "#446cb3");
-ajouterOptionMenu('Ne pas jouer automatiquement les Webm', 'pauseAutoWebm', "checkbox", gCGW, false);
-ajouterOptionMenu('Passer les webm en taille réel', 'hautWebm', "checkbox", gCGW, true);
+
 elementMenu = document.createElement('li');
 elementMenu.className = 'with-icon tooltip-bottom';
 elementMenu.attributes.style = "position:relative;";
@@ -211,15 +208,10 @@ elementMenu.appendChild(gCGW);
 document.getElementsByClassName('navbar-right')[0].appendChild(elementMenu);
 document.getElementById("ignoreList").style.resize = "vertical";
 document.getElementById("ignoreList").style.maxHeight = "400px";
-var colorBandStyl = document.getElementById("colorBandeau").style;
-colorBandStyl.backgroundColor = "#fff";
-colorBandStyl.marginTop = "0px";
-colorBandStyl.paddingTop = "0px";
-colorBandStyl.paddingBottom = "0px";
 
 
 ignoreList = GM_getValue('ignoreList', "").split(", ");
 if (document.getElementsByClassName('box_boucle').length > 0) { boucle(); setInterval(boucle, 3000); }
 if (document.getElementsByClassName('commentaires').length > 0 && GM_getBoolValue('affichageImagesCommentaires', false)) { afficherImagesCommentaires(); }
-if (document.getElementsByClassName('videoplayer').length > 0 && GM_getBoolValue('pauseAutoWebm', false)) { console.log(GM_getBoolValue('pauseAutoWebm', false)); mettreWebMPause(); }
-if (document.getElementsByClassName('videoplayer').length > 0 && GM_getBoolValue('hautWebm', false)) { adaptHauteurWebM(); }
+if (document.getElementById('sidebar') != null && GM_getBoolValue('rmSidebarBoxList', false)) { rmSidebar(document.getElementById('sidebar')); }
+if (document.getElementsByClassName('col-xs-4').length > 0 && GM_getBoolValue('rmSidebarBox', false)) { rmSidebar(document.getElementsByClassName('col-xs-4')[0]); }
