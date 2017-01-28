@@ -10,7 +10,8 @@
 // @grant       GM_setValue
 // @grant       GM_log
 // @require     http://code.jquery.com/jquery-2.0.3.min.js
-// @updateURL 	https://github.com/BenjiCB/Chouaddon/raw/master/Chouaddon.user.js
+// @updateURL https://github.com/BenjiCB/Chouaddon/raw/master/Chouaddon.user.js
+// @downloadURL https://github.com/BenjiCB/Chouaddon/raw/master/Chouaddon.user.js
 // ==/UserScript==
 boxWorked = new Array();
 regPseudo = /blog\/(.*)/;
