@@ -5,7 +5,7 @@
 // @author      Appineos - http://choualbox.com/blog/appineos (Benji)
 // @editor	CatShadow - http://choualbox.com/blog/catshadow
 // @include     http://choualbox.com/*
-// @version     4.0
+// @version     4.1
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_log
@@ -21,7 +21,6 @@ try {
 		this.GM_getValue=function (key,def) {
 			return localStorage[key] || def;
 		};
-		
 		this.GM_setValue=function (key,value) {
 			return localStorage[key]=value;
 		};
@@ -35,7 +34,7 @@ catch (e) {
 }
 this.GM_getBoolValue = function (key, def) {
 	return (this.GM_getValue(key, def) === true || this.GM_getValue(key, def) == "true");
-}
+};
 
 function boucle() {
 	boxs = document.getElementsByClassName('box_boucle');
@@ -48,7 +47,7 @@ function boucle() {
 		idUnique = box.getElementsByClassName('nbcoms')[0].pathname;
 		box.classList.add('dejaTraitee');
 		titre = box.getElementsByTagName("h3")[0].getElementsByTagName("a")[0].innerHTML;
-		console.log(box.getElementsByClassName('infos'));
+
 		if (box.classList.contains('large'))
 		 pseudoId = box.getElementsByClassName('medias')[0].getElementsByTagName('a')[0].innerText;
 		else
@@ -61,9 +60,8 @@ function boucle() {
 					lienIgnore.innerHTML = '<span class="glyphicon glyphicon-eye-close"></span> Ignorer ' + pseudoId;
 					lienIgnore.className = 'ignoreNickname-' + pseudoId;
 					lienIgnore.style.cursor = "pointer";
-					lienIgnore.onclick = function () { ajoutIgnoreList(this) };
+					lienIgnore.onclick = function () { ajoutIgnoreList(this); };
 					lienIgnore.style.color = 'rgb(102, 102, 102)';
-					
 					mediaBox.appendChild(lienIgnore);
 				}
 				if (GM_getBoolValue('series', false) && regSeries.test(titre)) {
@@ -75,21 +73,31 @@ function boucle() {
 				}
 			}
 			else {
-				box.style.backgroundColor = '#EFEFEF';
-				box.style.minHeight = 0;
-				box.innerHTML = '<a href="' + idUnique + '">Box déjà votée (' + pseudoId + ') - ' + titre + '</a>';
-			}
+                if (GM_getBoolValue('delAutoVote', false)) {
+                    box.parentNode.removeChild(box);
+                }
+                else {
+                    box.style.backgroundColor = '#EFEFEF';
+                    box.style.minHeight = 0;
+                    box.innerHTML = '<a style="color: rgb(102, 102, 102)" href="' + idUnique + '">Box déjà votée (' + pseudoId + ') - ' + titre + '</a>';
+                }
+             }
 		}
 		else {
-			box.style.backgroundColor = '#EEEEEE';
-			box.style.minHeight = 0;
-			box.innerHTML = '<a style="color: rgb(102, 102, 102)" href="' + idUnique + '">Box ignorée (' + pseudoId + ') - ' + titre + '</a>';
-		}
+            if (GM_getBoolValue('delIgnBox', false)) {
+                box.parentNode.removeChild(box);
+            }
+            else {
+                box.style.backgroundColor = '#EEEEEE';
+                box.style.minHeight = 0;
+                box.innerHTML = '<a style="color: rgb(102, 102, 102)" href="' + idUnique + '">Box ignorée (' + pseudoId + ') - ' + titre + '</a>';
+            }
+        }
 	}
 }
 function afficherImagesCommentaires() {
 	medias = document.getElementsByClassName('media_image');
-	for (i in medias) {
+	for (var i in medias) {
 		if (isNaN(i)) continue;
 		lien = medias[i].getElementsByTagName('a')[0];
 		if (lien.getElementsByClassName('gif-overlay').length > 0)
@@ -101,7 +109,7 @@ function afficherImagesCommentaires() {
 }
 function ajoutIgnoreList(obj) {
     id = obj.className;
-    regPseudo = /ignoreNickname-(.*)/
+    regPseudo = /ignoreNickname-(.*)/;
     if ((regPseudo.test(id)) && (pseudo = regPseudo.exec(id)[1]) && (!ignoreList.hasOwnProperty(pseudo)) && (ignoreList.indexOf(pseudo) == -1)) {
 			ignoreList = GM_getValue('ignoreList', "").split(", ");
 			if ("" == GM_getValue('ignoreList', "")) GM_setValue('ignoreList', pseudo);
@@ -113,11 +121,19 @@ function ajoutIgnoreList(obj) {
     }
 	obj.innerHTML = "Ignoré";
 }
-function rmSidebar(sidebar) {
+function toggleSidebar(sidebar) {
 	if (sidebar != null) {
-	 sidebar.parentNode.removeChild(sidebar);
-	 document.getElementById('principal').getElementsByClassName('col-xs-8')[0].className = 'col-xs-12';
-	}
+        if (GM_getBoolValue('rmSidebar', false)) {
+            sidebar.style.display = 'none';
+            var a = document.getElementById('principal').getElementsByClassName('col-xs-8')[0];
+            a.className = 'col-xs-12';
+            a.style.backgroundColor = 'white';
+        }
+        else {
+            sidebar.style.display = 'block';
+            document.getElementById('principal').getElementsByClassName('col-xs-12')[0].className = 'col-xs-8';
+        }
+    }
 }
 function ajouterOptionMenu(label, nomInterne, type, parent, def) {
 	option = document.createElement("div");
@@ -128,18 +144,18 @@ function ajouterOptionMenu(label, nomInterne, type, parent, def) {
 		optionInput.type = type;
 	}
 	if (type == "checkbox"){
-		optionInput.onclick = function () { optionChange(this) };
+		optionInput.onclick = function () { optionChange(this); };
 		optionInput.checked = GM_getBoolValue(nomInterne, def);
 	}
 	else {
-		optionInput.onblur = function () { optionChange(this) };
+		optionInput.onblur = function () { optionChange(this); };
 		optionInput.value = GM_getValue(nomInterne, def);
 	}
 	optionInput.id = nomInterne;
 	optionInput.style.height = "auto";
 	optionInput.style.width = "auto";
 	optionInput.style.marginRight = "5px";
-	
+
 	optionLabel = document.createElement("label");
 	optionLabel.htmlFor = nomInterne;
 	optionLabel.innerHTML = label;
@@ -163,7 +179,7 @@ function ajouterOptionMenu(label, nomInterne, type, parent, def) {
 }
 
 function optionChange(optionInput) {
-		if (optionInput.type == "checkbox") val = optionInput.checked;
+	if (optionInput.type == "checkbox") val = optionInput.checked;
 	else val = optionInput.value;
 	GM_setValue(optionInput.id, val);
 }
@@ -172,17 +188,18 @@ gCGW.classList.add('dropdown-menu');
 gCGW.style.width = "600px";
 gCGW.style.padding = "5px";
 titregCGW = document.createElement('h1');
-titregCGW.innerHTML = "Chouaddon v4.0 - Configuration";
+titregCGW.innerHTML = "Chouaddon v4.1 - Configuration";
 gCGW.appendChild(titregCGW);
 
-ajouterOptionMenu('Masquer les box déjà votées', 'delAutoVote', "checkbox", gCGW, false);
-ajouterOptionMenu('Images commentaire en taille réelle', 'affichageImagesCommentaires', "checkbox", gCGW, true);
-ajouterOptionMenu('Lien auto de recherche lors d\'une série', 'series', "checkbox", gCGW, true);
+ajouterOptionMenu('Réduire les box déjà votées (un lien sera quand même affiché)', 'redAutoVote', "checkbox", gCGW, false);
+ajouterOptionMenu('Supprimer les box déjà votées', 'delAutoVote', "checkbox", gCGW, false);
+ajouterOptionMenu('Images commentaire en taille réelle', 'affichageImagesCommentaires', "checkbox", gCGW, false);
+ajouterOptionMenu('Lien auto de recherche lors d\'une série', 'series', "checkbox", gCGW, false);
 ajouterOptionMenu('Lien sur chaque box pour ignorer les box de l\'auteur', 'affLienIgnore', "checkbox", gCGW, false);
-ajouterOptionMenu('Enlever la colonne de droite sur la liste des boxs', 'rmSidebarBoxList', "checkbox", gCGW, false);
-ajouterOptionMenu('Enlever la colonne de droite sur les boxs', 'rmSidebarBox', "checkbox", gCGW, false);
-ajouterOptionMenu('Utilisateurs ignorés : (Séparés par des virgules, pas de majuscules)', 'ignoreList', "textarea", gCGW, "");
 
+ajouterOptionMenu('Utilisateurs ignorés : (Séparés par des virgules, pas de majuscules)', 'ignoreList', "textarea", gCGW, "");
+ajouterOptionMenu('Supprimer les boxs ignorées (Réduites sinon)', 'delIgnBox', "checkbox", gCGW, false);
+// Menu de config
 elementMenu = document.createElement('li');
 elementMenu.className = 'with-icon tooltip-bottom';
 elementMenu.attributes.style = "position:relative;";
@@ -199,13 +216,42 @@ lienElementMenu.style.paddingBottom = "0px";
 lienElementMenu.onclick = function() {
 	gCGW.style.display = (gCGW.style.display == "none" || gCGW.style.display == "") ? "block" : "none";
 	filtreElementMenu.className = (gCGW.style.display == "none" || gCGW.style.display == "") ? 'glyphicon glyphicon-plus' : 'glyphicon glyphicon-minus';
-}
-
+};
 
 lienElementMenu.appendChild(filtreElementMenu);
 elementMenu.appendChild(lienElementMenu);
 elementMenu.appendChild(gCGW);
 document.getElementsByClassName('navbar-right')[0].appendChild(elementMenu);
+
+//Sidebar
+elementMenu2 = document.createElement('li');
+elementMenu2.className = 'with-icon tooltip-bottom';
+elementMenu2.attributes.style = "position:relative;";
+
+sidebarElementMenu = document.createElement('i');
+sidebarElementMenu.className = GM_getBoolValue('rmSidebar', false) ? 'glyphicon glyphicon-align-left' : ' glyphicon glyphicon-indent-right';
+sidebarElementMenu.style.cursor = "pointer";
+
+lienElementMenu2 = document.createElement('a');
+lienElementMenu2.style.paddingTop = "15px";
+lienElementMenu2.style.paddingLeft = "0px";
+lienElementMenu2.style.paddingRight = "0px";
+lienElementMenu2.style.paddingBottom = "0px";
+lienElementMenu2.style.marginLeft = '10px';
+lienElementMenu2.onclick = function() {
+    GM_setValue('rmSidebar', !GM_getBoolValue('rmSidebar', false));
+	sidebarElementMenu.className = GM_getBoolValue('rmSidebar', false) ? 'glyphicon glyphicon-align-left' : ' glyphicon glyphicon-indent-right';
+
+    if (document.getElementById('sidebar') != null) { toggleSidebar(document.getElementById('sidebar')); }
+    if (document.getElementsByClassName('col-xs-4').length > 0) { toggleSidebar(document.getElementsByClassName('col-xs-4')[0]); }
+};
+
+lienElementMenu2.appendChild(sidebarElementMenu);
+elementMenu2.appendChild(lienElementMenu2);
+
+document.getElementsByClassName('navbar-right')[0].appendChild(elementMenu2);
+
+
 document.getElementById("ignoreList").style.resize = "vertical";
 document.getElementById("ignoreList").style.maxHeight = "400px";
 
@@ -213,5 +259,5 @@ document.getElementById("ignoreList").style.maxHeight = "400px";
 ignoreList = GM_getValue('ignoreList', "").split(", ");
 if (document.getElementsByClassName('box_boucle').length > 0) { boucle(); setInterval(boucle, 3000); }
 if (document.getElementsByClassName('commentaires').length > 0 && GM_getBoolValue('affichageImagesCommentaires', false)) { afficherImagesCommentaires(); }
-if (document.getElementById('sidebar') != null && GM_getBoolValue('rmSidebarBoxList', false)) { rmSidebar(document.getElementById('sidebar')); }
-if (document.getElementsByClassName('col-xs-4').length > 0 && GM_getBoolValue('rmSidebarBox', false)) { rmSidebar(document.getElementsByClassName('col-xs-4')[0]); }
+if (document.getElementById('sidebar') != null && GM_getBoolValue('rmSidebar', false)) { toggleSidebar(document.getElementById('sidebar')); }
+if (document.getElementsByClassName('col-xs-4').length > 0 && GM_getBoolValue('rmSidebar', false)) { toggleSidebar(document.getElementsByClassName('col-xs-4')[0]); }
