@@ -3,14 +3,17 @@
 // @namespace   choualbox.com
 // @description Addon qui améliore la navigation sur Choualbox
 // @author      Appineos - http://choualbox.com/blog/appineos (Benji)
-// @editor	CatShadow - http://choualbox.com/blog/catshadow
+// @editor	    CatShadow - http://choualbox.com/blog/catshadow
 // @include     http://choualbox.com/*
-// @version     4.1
+// @include     https://choualbox.com/*
+// @exclude     http://choualbox.com/blog/*
+// @exclude     https://choualbox.com/blog/*
+// @version     4.1.1
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_log
 // @require     http://code.jquery.com/jquery-2.0.3.min.js
-// @updateURL https://github.com/BenjiCB/Chouaddon/raw/master/Chouaddon.user.js
+// @updateURL 	https://github.com/BenjiCB/Chouaddon/raw/master/Chouaddon.user.js
 // @downloadURL https://github.com/BenjiCB/Chouaddon/raw/master/Chouaddon.user.js
 // ==/UserScript==
 boxWorked = new Array();
@@ -55,7 +58,14 @@ function boucle() {
 		 pseudoId = box.getElementsByClassName('infos')[0].getElementsByTagName('a')[1].innerText;
 
 		if ((ignoreList.indexOf(pseudoId) == -1)) { //Si la personne n'est pas ignorée
-			if (!((box.getElementsByClassName('voted').length != 0) && (GM_getBoolValue('delAutoVote', false)))) {
+			if (!(
+                (box.getElementsByClassName('voted').length != 0)
+                && (
+                    (GM_getBoolValue('redAutoVote', false)
+                     || GM_getBoolValue('delAutoVote', false)
+                    )
+                )
+            )) {
 				if (GM_getBoolValue('affLienIgnore', false)) {
 					lienIgnore = document.createElement('a');
 					lienIgnore.innerHTML = '<span class="glyphicon glyphicon-eye-close"></span> Ignorer ' + pseudoId;
@@ -78,6 +88,7 @@ function boucle() {
                     box.parentNode.removeChild(box);
                 }
                 else {
+                    console.log(box);
                     box.style.backgroundColor = '#EFEFEF';
                     box.style.minHeight = 0;
                     box.innerHTML = '<a style="color: rgb(102, 102, 102)" href="' + idUnique + '">Box déjà votée (' + pseudoId + ') - ' + titre + '</a>';
