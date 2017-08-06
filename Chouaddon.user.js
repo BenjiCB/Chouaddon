@@ -3,12 +3,13 @@
 // @namespace   choualbox.com
 // @description Addon qui améliore la navigation sur Choualbox
 // @author      Appineos - http://choualbox.com/blog/appineos (Benji)
-// @editor	    CatShadow - http://choualbox.com/blog/catshadow
+// @editor	CatShadow - http://choualbox.com/blog/catshadow
+// @editor	Divi - https://choualbox.com/blog/divi - https://choualbox.com/gZwkw#comid4154429
 // @include     http://choualbox.com/*
 // @include     https://choualbox.com/*
 // @exclude     http://choualbox.com/blog/*
 // @exclude     https://choualbox.com/blog/*
-// @version     4.1.1
+// @version     4.1.2
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_log
@@ -16,8 +17,9 @@
 // @updateURL 	https://github.com/BenjiCB/Chouaddon/raw/master/Chouaddon.user.js
 // @downloadURL https://github.com/BenjiCB/Chouaddon/raw/master/Chouaddon.user.js
 // ==/UserScript==
-boxWorked = new Array();
+
 regPseudo = /blog\/(.*)/;
+mediaBox = [];
 regSeries = /([^\t]+?)\.*#[0-9]+.*$/;
 
 try {
@@ -26,7 +28,7 @@ try {
 			return localStorage[key] || def;
 		};
 		this.GM_setValue=function (key,value) {
-			return localStorage[key]=value;
+			localStorage[key]=value;
 		};
 		this.GM_deleteValue=function (key) {
 			return delete localStorage[key];
@@ -41,25 +43,29 @@ this.GM_getBoolValue = function (key, def) {
 };
 
 function boucle() {
-	boxs = document.getElementsByClassName('box_boucle');
-	for (i in boxs) {
+	boxs = document.getElementsByClassName('box_itemboucle');
+
+	for (var i in boxs) {
 		if (isNaN(i)) continue;
 		if (boxs[i].classList.contains('dejaTraitee')) continue;
 		box = boxs[i];
-		droiteBox = box.getElementsByClassName('droite')[0];
-		mediaBox = droiteBox.getElementsByClassName('medias')[0];
-		idUnique = box.getElementsByClassName('nbcoms')[0].pathname;
+		//droiteBox = box.getElementsByClassName('droite')[0];
+		//mediaBox = droiteBox.getElementsByClassName('medias')[0];
+		//idUnique = box.getElementsByClassName('nbcoms')[0].pathname;
 		box.classList.add('dejaTraitee');
-		titre = box.getElementsByTagName("h3")[0].getElementsByTagName("a")[0].innerHTML;
 
-		if (box.classList.contains('large'))
-		 pseudoId = box.getElementsByClassName('medias')[0].getElementsByTagName('a')[0].innerText;
-		else
-		 pseudoId = box.getElementsByClassName('infos')[0].getElementsByTagName('a')[1].innerText;
+		if (box.classList.contains('mb3')) {
+		  pseudoId = box.getElementsByClassName('b--near-white')[0].getElementsByTagName('a')[0].innerText;
+      titre = box.getElementsByTagName("h3")[0].getElementsByTagName("a")[0].innerHTML;
+    } else {
+		  pseudoId = box.getElementsByClassName('truncate')[1].getElementsByTagName('a')[0].innerText;
+      titre = box.getElementsByClassName('truncate')[0].getElementsByTagName("a")[0].innerHTML;
+    }
+   
 
 		if ((ignoreList.indexOf(pseudoId) == -1)) { //Si la personne n'est pas ignorée
 			if (!(
-                (box.getElementsByClassName('voted').length != 0)
+                (box.getElementsByClassName('boutonsvote')[0].getElementsByClassName('voted').length != 0)
                 && (
                     (GM_getBoolValue('redAutoVote', false)
                      || GM_getBoolValue('delAutoVote', false)
@@ -73,14 +79,14 @@ function boucle() {
 					lienIgnore.style.cursor = "pointer";
 					lienIgnore.onclick = function () { ajoutIgnoreList(this); };
 					lienIgnore.style.color = 'rgb(102, 102, 102)';
-					mediaBox.appendChild(lienIgnore);
+					//mediaBox.appendChild(lienIgnore);
 				}
 				if (GM_getBoolValue('series', false) && regSeries.test(titre)) {
 					titreDec = regSeries.exec(titre);
 					lienSerie = document.createElement('a');
 					lienSerie.innerHTML = '<span class="glyphicon glyphicon-search"></span> Série ' + titreDec[1];
 					lienSerie.href = 'http://choualbox.com/recherche?q=' + encodeURIComponent(titreDec[1]);
-					mediaBox.appendChild(lienSerie);
+					//mediaBox.appendChild(lienSerie);
 				}
 			}
 			else {
@@ -91,7 +97,7 @@ function boucle() {
                     console.log(box);
                     box.style.backgroundColor = '#EFEFEF';
                     box.style.minHeight = 0;
-                    box.innerHTML = '<a style="color: rgb(102, 102, 102)" href="' + idUnique + '">Box déjà votée (' + pseudoId + ') - ' + titre + '</a>';
+                    //box.innerHTML = '<a style="color: rgb(102, 102, 102)" href="' + idUnique + '">Box déjà votée (' + pseudoId + ') - ' + titre + '</a>';
                 }
              }
 		}
@@ -100,9 +106,8 @@ function boucle() {
                 box.parentNode.removeChild(box);
             }
             else {
-                box.style.backgroundColor = '#EEEEEE';
-                box.style.minHeight = 0;
-                box.innerHTML = '<a style="color: rgb(102, 102, 102)" href="' + idUnique + '">Box ignorée (' + pseudoId + ') - ' + titre + '</a>';
+                box.style.display = 'none';
+                //box.innerHTML = '<a style="color: rgb(102, 102, 102)" href="' + idUnique + '">Box ignorée (' + pseudoId + ') - ' + titre + '</a>';
             }
         }
 	}
@@ -233,7 +238,7 @@ lienElementMenu.onclick = function() {
 lienElementMenu.appendChild(filtreElementMenu);
 elementMenu.appendChild(lienElementMenu);
 elementMenu.appendChild(gCGW);
-document.getElementsByClassName('navbar-right')[0].appendChild(elementMenu);
+document.getElementById('coldroite').appendChild(elementMenu);
 
 //Sidebar
 elementMenu2 = document.createElement('li');
@@ -261,7 +266,7 @@ lienElementMenu2.onclick = function() {
 lienElementMenu2.appendChild(sidebarElementMenu);
 elementMenu2.appendChild(lienElementMenu2);
 
-document.getElementsByClassName('navbar-right')[0].appendChild(elementMenu2);
+document.getElementById('coldroite').appendChild(elementMenu2);
 
 
 document.getElementById("ignoreList").style.resize = "vertical";
@@ -269,7 +274,7 @@ document.getElementById("ignoreList").style.maxHeight = "400px";
 
 
 ignoreList = GM_getValue('ignoreList', "").split(", ");
-if (document.getElementsByClassName('box_boucle').length > 0) { boucle(); setInterval(boucle, 3000); }
+if (document.getElementsByClassName('box_itemboucle').length > 0) { boucle(); setInterval(boucle, 3000); }
 if (document.getElementsByClassName('commentaires').length > 0 && GM_getBoolValue('affichageImagesCommentaires', false)) { afficherImagesCommentaires(); }
 if (document.getElementById('sidebar') != null && GM_getBoolValue('rmSidebar', false)) { toggleSidebar(document.getElementById('sidebar')); }
 if (document.getElementsByClassName('col-xs-4').length > 0 && GM_getBoolValue('rmSidebar', false)) { toggleSidebar(document.getElementsByClassName('col-xs-4')[0]); }
